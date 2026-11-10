@@ -1,0 +1,11 @@
+{
+  "name": "Product photo cleanup",
+  "ops": [
+    {"op": "auto_color"},
+    {"op": "adjust", "adjustment": {"Exposure": {"exposure": 0.15, "offset": 0.0, "gamma": 1.0}}},
+    {"op": "filter", "filter": {"Clarity": {"amount": 0.35}}},
+    {"op": "crop_aspect", "ratio_w": 1.0, "ratio_h": 1.0},
+    {"op": "resize", "width": 2000, "height": 2000, "percent": null, "method": "Lanczos3"},
+    {"op": "filter", "filter": {"UnsharpMask": {"amount": 0.5, "radius": 0.8, "threshold": 0.01}}}
+  ]
+}

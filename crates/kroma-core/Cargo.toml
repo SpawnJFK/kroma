@@ -1,0 +1,20 @@
+[package]
+name = "kroma-core"
+description = "Kroma image editing engine: layers, blend modes, selections, brushes, adjustments, filters, file IO"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+image.workspace = true
+rayon.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+zip.workspace = true
+psd.workspace = true
+ab_glyph.workspace = true
+epaint_default_fonts.workspace = true
+anyhow.workspace = true
+
+[lints]
+workspace = true

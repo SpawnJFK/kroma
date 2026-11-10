@@ -1,0 +1,74 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: System libs for eframe
+        run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+      - run: cargo test --workspace
+
+  build:
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x64
+          - os: macos-latest
+            name: macos-arm64
+          - os: ubuntu-latest
+            name: linux-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: System libs (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+      - run: cargo build --release --workspace
+      - name: WiX Toolset (Windows)
+        if: runner.os == 'Windows'
+        run: choco install wixtoolset -y --no-progress
+      - name: MSI (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cargo install cargo-wix --locked
+          cargo wix --no-build -p kroma-app
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p dist/kroma
+          cp README.md FEATURES.md dist/kroma/
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cp target/release/kroma-app.exe target/release/kroma.exe dist/kroma/
+            if [ -f target/wix/kroma-app-*.msi ]; then cp target/wix/kroma-app-*.msi dist/kroma/; fi
+          else
+            cp target/release/kroma-app target/release/kroma dist/kroma/
+          fi
+          cd dist && 7z a ../kroma-${{ matrix.name }}.zip kroma >/dev/null || zip -r ../kroma-${{ matrix.name }}.zip kroma
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kroma-${{ matrix.name }}
+          path: kroma-${{ matrix.name }}.zip
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: kroma-${{ matrix.name }}.zip

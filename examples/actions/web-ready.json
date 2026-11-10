@@ -1,0 +1,23 @@
+{
+  "name": "Web Ready (2048px, auto tone, sharpen)",
+  "ops": [
+    {
+      "op": "fit_within",
+      "max_width": 2048,
+      "max_height": 2048
+    },
+    {
+      "op": "auto_tone"
+    },
+    {
+      "op": "filter",
+      "filter": {
+        "UnsharpMask": {
+          "amount": 0.6,
+          "radius": 0.8,
+          "threshold": 0.0
+        }
+      }
+    }
+  ]
+}
